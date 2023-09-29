@@ -1,0 +1,28 @@
+version: '3.3'
+services:
+  db:
+    image: postgres:13.4
+    volumes:
+      - db:/var/lib/postgresql/data/
+    env_file: 
+      - ./.env
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${DB_NAME}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  fastapi:
+    build: ./api
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+
+volumes:
+  db:
